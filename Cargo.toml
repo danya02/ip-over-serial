@@ -2,4 +2,6 @@
 members = [
     "serial",
     "serial_listener",
+    "serial_frame_generator",
+    "serial_frame_listener",
 ]

@@ -1,7 +1,7 @@
 use std::{path::PathBuf, time::Duration};
 
-use tokio::time::{interval, Interval};
-use tokio_serial::{SerialPort, SerialPortBuilderExt, SerialStream};
+use tokio::time::Interval;
+use tokio_serial::{SerialPortBuilderExt, SerialStream};
 
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace, warn};
@@ -32,7 +32,7 @@ pub async fn detect_port(int: &mut Interval) -> SerialStream {
             if new.len() > 1 {
                 panic!("Too many new serial ports detected: {new:?}");
             }
-            if new.len() == 0 {
+            if new.is_empty() {
                 debug!("No new serial ports found, ignoring");
                 last = current;
                 continue;
@@ -44,15 +44,17 @@ pub async fn detect_port(int: &mut Interval) -> SerialStream {
             last = current; // if it turns out we can't use this
 
             for _ in 0..10 {
-                let opened = tokio_serial::new(new_serial.to_str().expect("TTY name not unicode"), 9600).open_native_async();
+                let opened =
+                    tokio_serial::new(new_serial.to_str().expect("TTY name not unicode"), 9600)
+                        .open_native_async();
                 match opened {
                     Ok(port) => {
                         return port;
-                    },
+                    }
                     Err(error) => {
                         error!("Error opening port {new_serial:?}: {error:?}");
-                        tokio::time::sleep(Duration::from_secs(1)).await;
-                    },
+                        tokio::time::sleep(Duration::from_millis(100)).await;
+                    }
                 }
             }
         }
